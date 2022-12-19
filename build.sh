@@ -1,5 +1,6 @@
 #!/bin/sh
 
+CDIR=`pwd`
 SRCDIR=`pwd`/src
 
 rm -rf src
@@ -22,7 +23,7 @@ fi
 git reset --hard 409bd76
 git submodule update --init --recursive --jobs=${NUMCORE} --force
 
-cd /opt/packages/psol
+cd ${CDIR}
 
 for DIST in trusty xenial bionic focal jammy
 do
