@@ -1,7 +1,6 @@
 #!/bin/sh
 
-export ARG1=$1
-export ARG2=$2
+SRCDIR=`pwd`/src
 
 rm -rf src
 mkdir -p src
@@ -33,6 +32,6 @@ do
 
     cd docker
     docker build --no-cache -t eilandert/psol:${DIST} .
-    docker run --volume /opt/packages/psol/src:/usr/src eilandert/psol:${DIST}
+    docker run --volume ${SRCDIR}:/usr/src eilandert/psol:${DIST}
     cd ..
 done
