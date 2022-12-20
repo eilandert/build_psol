@@ -17,7 +17,7 @@ if [ "$DIST" == "trusty" ]; then
     export PATH="/usr/lib/binutils-2.26/bin:$PATH"
 fi
 
-rm /usr/bin/python
+rm -f /usr/bin/python
 ln -s /usr/bin/python2 /usr/bin/python
 
 . /etc/os-release
@@ -63,7 +63,10 @@ TIME_ENDED="`date`"
 echo "Finished!"
 echo "Started: ${TIME_STARTED}"
 echo "Ended:   ${TIME_ENDED}"
+echo "Cores: ${NUMCORE}"
 echo "Dumped psol.tar.xz in /usr/src/psol-${DIST}.tar.xz"
+echo "--------------------------------------------------> The End"
+echo ""
 
 exit 0;
 
