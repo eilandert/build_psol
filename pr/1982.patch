@@ -1,0 +1,375 @@
+From 873bfebc3fc8acd142b322523021849b8b41a45a Mon Sep 17 00:00:00 2001
+From: Lofesa <lofesa@gmail.com>
+Date: Fri, 7 Feb 2020 21:06:59 +0100
+Subject: [PATCH 1/3] Add Firefox UA webp capables and blacklist these taht not
+
+Signed-off-by: Lofesa <lofesa@gmail.com>
+---
+ pagespeed/kernel/http/user_agent_matcher.cc   | 41 +++++++++++++++++++
+ .../kernel/http/user_agent_matcher_test.cc    |  4 ++
+ .../http/user_agent_matcher_test_base.cc      |  2 +
+ .../http/user_agent_matcher_test_base.h       |  1 +
+ 4 files changed, 48 insertions(+)
+
+diff --git a/pagespeed/kernel/http/user_agent_matcher.cc b/pagespeed/kernel/http/user_agent_matcher.cc
+index 62a6364f23..58439f2d68 100644
+--- a/pagespeed/kernel/http/user_agent_matcher.cc
++++ b/pagespeed/kernel/http/user_agent_matcher.cc
+@@ -133,6 +133,12 @@ const char* kDeferJSMobileWhitelist[] = {
+ //     "Firefox" in the user agent.
+ const char* kLegacyWebpWhitelist[] = {
+   "*Android *",
++  "*Firefox/66.*",
++  "*Firefox/67.*",
++  "*Firefox/68.*",
++  "*Firefox/69.*",
++  "*Firefox/70.*",
++  "*Firefox/71.*", // These Firefox versions are webp capable but don´t send webp header
+ };
+ 
+ // Based on https://github.com/apache/incubator-pagespeed-mod/issues/978,
+@@ -150,6 +156,17 @@ const char* kLegacyWebpBlacklist[] = {
+   "*Windows Phone*",
+   "*Chrome/*",       // Genuine Chrome always sends Accept: webp.
+   "*CriOS/*",        // Paranoia: we should not see Android and CriOS together.
++  "*Firefox/?.*",
++  "*Firefox/1?.*",
++  "*Firefox/2?.*",
++  "*Firefox/3?.*",
++  "*Firefox/4?.*",
++  "*Firefox/5?.*",
++  "*Firefox/60.*",
++  "*Firefox/61.*",
++  "*Firefox/62.*",
++  "*Firefox/63.*",
++  "*Firefox/64.*",  // Firefox versions not webp capables
+ };
+ 
+ // To determine lossless webp support and animated webp support, we must
+@@ -161,6 +178,7 @@ const char* kWebpLosslessAlphaWhitelist[] = {
+   // User agent used only for internal testing.
+   "webp-la",
+   "webp-animated",
++  "*Firefox/*", // Do this way to permit Firefox webcapable to convert png
+ };
+ 
+ const char* kWebpLosslessAlphaBlacklist[] = {
+@@ -179,6 +197,17 @@ const char* kWebpLosslessAlphaBlacklist[] = {
+   "*CriOS/26.*",
+   "*CriOS/27.*",
+   "*CriOS/28.*",
++  "*Firefox/?.*",
++  "*Firefox/1?.*",
++  "*Firefox/2?.*",
++  "*Firefox/3?.*",
++  "*Firefox/4?.*",
++  "*Firefox/5?.*",
++  "*Firefox/60.*",
++  "*Firefox/61.*",
++  "*Firefox/62.*",
++  "*Firefox/63.*",
++  "*Firefox/64.*", // Black list Firefox not webp capable
+ };
+ 
+ // Animated WebP is supported by browsers based on Chromium v32+, including
+@@ -190,6 +219,7 @@ const char* kWebpAnimatedWhitelist[] = {
+   "*Chrome/??.*",
+   "*CriOS/??.*",
+   "webp-animated",  // User agent for internal testing.
++  "*Firefox/*",
+ };
+ 
+ const char* kWebpAnimatedBlacklist[] = {
+@@ -203,6 +233,17 @@ const char* kWebpAnimatedBlacklist[] = {
+   "*CriOS/2?.*",
+   "*CriOS/30.*",
+   "*CriOS/31.*",
++  "*Firefox/?.*",
++  "*Firefox/1?.*",
++  "*Firefox/2?.*",
++  "*Firefox/3?.*",
++  "*Firefox/4?.*",
++  "*Firefox/5?.*",
++  "*Firefox/60.*",
++  "*Firefox/61.*",
++  "*Firefox/62.*",
++  "*Firefox/63.*",
++  "*Firefox/64.*",
+ };
+ 
+ const char* kInsertDnsPrefetchWhitelist[] = {
+diff --git a/pagespeed/kernel/http/user_agent_matcher_test.cc b/pagespeed/kernel/http/user_agent_matcher_test.cc
+index 570a4923aa..4f76baf6f5 100644
+--- a/pagespeed/kernel/http/user_agent_matcher_test.cc
++++ b/pagespeed/kernel/http/user_agent_matcher_test.cc
+@@ -397,6 +397,8 @@ TEST_F(UserAgentMatcherTest, SupportsWebpLosslessAlpha) {
+       kPagespeedInsightsMobileUserAgent));
+   EXPECT_TRUE(user_agent_matcher_->SupportsWebpLosslessAlpha(
+       kPagespeedInsightsDesktopUserAgent));
++  EXPECT_TRUE(user_agent_matcher_->SupportsWebpLosslessAlpha(
++      kFirefox7UserAgent));
+ }
+ 
+ TEST_F(UserAgentMatcherTest, DoesntSupportWebpLosslessAlpha) {
+@@ -495,6 +497,8 @@ TEST_F(UserAgentMatcherTest, SupportsAnimatedWebp) {
+       kOpera19UserAgent));
+   EXPECT_TRUE(user_agent_matcher_->SupportsWebpAnimated(
+       kChrome37UserAgent));
++  EXPECT_TRUE(user_agent_matcher_->SupportsWebpAnimated(
++      kFirefox7UserAgent));
+ }
+ 
+ TEST_F(UserAgentMatcherTest, DoesntSupportAnimatedWebp) {
+diff --git a/pagespeed/kernel/http/user_agent_matcher_test_base.cc b/pagespeed/kernel/http/user_agent_matcher_test_base.cc
+index bdba09c793..1c975f9375 100644
+--- a/pagespeed/kernel/http/user_agent_matcher_test_base.cc
++++ b/pagespeed/kernel/http/user_agent_matcher_test_base.cc
+@@ -128,6 +128,8 @@ const char UserAgentMatcherTestBase::kFirefox42AndroidUserAgent[] =
+     "Mozilla/5.0 (Android 5.0.1; Mobile; rv:42.0) Gecko/42.0 Firefox/42.0";
+ const char UserAgentMatcherTestBase::kFirefox5UserAgent[] =
+     "Mozilla/5.0 (X11; U; Linux i586; de; rv:5.0) Gecko/20100101 Firefox/5.0";
++const char UserAgentMatcherTestBase::kFirefox7UserAgent[] =
++    "Mozilla/5.0 (X11; Linux i586; rv:31.0) Gecko/20100101 Firefox/72.0"; //webp capable
+ const char UserAgentMatcherTestBase::kFirefoxMobileUserAgent[] =
+     "Mozilla/5.0 (Android; Mobile; rv:38.0) Gecko/38.0 Firefox/38.0";
+ const char UserAgentMatcherTestBase::kFirefoxNokiaN800[] =
+diff --git a/pagespeed/kernel/http/user_agent_matcher_test_base.h b/pagespeed/kernel/http/user_agent_matcher_test_base.h
+index f1b146326b..0ca66d0db9 100644
+--- a/pagespeed/kernel/http/user_agent_matcher_test_base.h
++++ b/pagespeed/kernel/http/user_agent_matcher_test_base.h
+@@ -67,6 +67,7 @@ class UserAgentMatcherTestBase : public testing::Test {
+   static const char kFirefox3UserAgent[];
+   static const char kFirefox42AndroidUserAgent[];
+   static const char kFirefox5UserAgent[];
++  static const char kFirefox7UserAgent[];
+   static const char kFirefoxMobileUserAgent[];
+   static const char kFirefoxNokiaN800[];
+   static const char kFirefoxUserAgent[];
+
+From d6b055e3e490bd66c4ccd32a339b4b5549e743a5 Mon Sep 17 00:00:00 2001
+From: Otto van der Schaaf <oschaaf@we-amp.com>
+Date: Mon, 27 Jul 2020 23:50:21 +0200
+Subject: [PATCH 2/3] Reformat to new specs
+
+Signed-off-by: Otto van der Schaaf <oschaaf@we-amp.com>
+---
+ pagespeed/kernel/http/user_agent_matcher.cc   | 119 +++++-------------
+ .../kernel/http/user_agent_matcher_test.cc    |  24 ++--
+ .../http/user_agent_matcher_test_base.cc      |   6 +-
+ 3 files changed, 46 insertions(+), 103 deletions(-)
+
+diff --git a/pagespeed/kernel/http/user_agent_matcher.cc b/pagespeed/kernel/http/user_agent_matcher.cc
+index c99df45136..d98fc6c6bd 100644
+--- a/pagespeed/kernel/http/user_agent_matcher.cc
++++ b/pagespeed/kernel/http/user_agent_matcher.cc
+@@ -112,13 +112,9 @@ const char* kDeferJSMobileWhitelist[] = {
+ //  2. Recent Opera support WebP, and some Opera have both "Opera" and
+ //     "Firefox" in the user agent.
+ const char* kLegacyWebpWhitelist[] = {
+-  "*Android *",
+-  "*Firefox/66.*",
+-  "*Firefox/67.*",
+-  "*Firefox/68.*",
+-  "*Firefox/69.*",
+-  "*Firefox/70.*",
+-  "*Firefox/71.*", // These Firefox versions are webp capable but don´t send webp header
++    "*Android *",    "*Firefox/66.*", "*Firefox/67.*",
++    "*Firefox/68.*", "*Firefox/69.*", "*Firefox/70.*",
++    "*Firefox/71.*",  // These Firefox versions are webp capable but don´t send webp header
+ };
+ 
+ // Based on https://github.com/apache/incubator-pagespeed-mod/issues/978,
+@@ -126,68 +122,34 @@ const char* kLegacyWebpWhitelist[] = {
+ // https://groups.google.com/forum/?utm_medium=email&utm_source=footer#!msg/mod-pagespeed-discuss/HYzzdOzJu_k/ftdV8koVgUEJ
+ // a browser called Midori might (at some point) masquerade as Chrome as well.
+ const char* kLegacyWebpBlacklist[] = {
+-  "*Android 0.*",
+-  "*Android 1.*",
+-  "*Android 2.*",
+-  "*Android 3.*",
+-  "*Firefox/*",
+-  "*Edge/*",
+-  "*Trident/*",
+-  "*Windows Phone*",
+-  "*Chrome/*",       // Genuine Chrome always sends Accept: webp.
+-  "*CriOS/*",        // Paranoia: we should not see Android and CriOS together.
+-  "*Firefox/?.*",
+-  "*Firefox/1?.*",
+-  "*Firefox/2?.*",
+-  "*Firefox/3?.*",
+-  "*Firefox/4?.*",
+-  "*Firefox/5?.*",
+-  "*Firefox/60.*",
+-  "*Firefox/61.*",
+-  "*Firefox/62.*",
+-  "*Firefox/63.*",
+-  "*Firefox/64.*",  // Firefox versions not webp capables
++    "*Android 0.*",  "*Android 1.*",  "*Android 2.*",  "*Android 3.*",
++    "*Firefox/*",    "*Edge/*",       "*Trident/*",    "*Windows Phone*",
++    "*Chrome/*",  // Genuine Chrome always sends Accept: webp.
++    "*CriOS/*",   // Paranoia: we should not see Android and CriOS together.
++    "*Firefox/?.*",  "*Firefox/1?.*", "*Firefox/2?.*", "*Firefox/3?.*",
++    "*Firefox/4?.*", "*Firefox/5?.*", "*Firefox/60.*", "*Firefox/61.*",
++    "*Firefox/62.*", "*Firefox/63.*",
++    "*Firefox/64.*",  // Firefox versions not webp capables
+ };
+ 
+ // To determine lossless webp support and animated webp support, we must
+ // examine the UA.
+ const char* kWebpLosslessAlphaWhitelist[] = {
+-  "*Chrome/??.*",
+-  "*Chrome/???.*",
+-  "*CriOS/??.*",
+-  // User agent used only for internal testing.
+-  "webp-la",
+-  "webp-animated",
+-  "*Firefox/*", // Do this way to permit Firefox webcapable to convert png
++    "*Chrome/??.*", "*Chrome/???.*", "*CriOS/??.*",
++    // User agent used only for internal testing.
++    "webp-la", "webp-animated",
++    "*Firefox/*",  // Do this way to permit Firefox webcapable to convert png
+ };
+ 
+ const char* kWebpLosslessAlphaBlacklist[] = {
+-  "*Chrome/?.*",
+-  "*Chrome/1?.*",
+-  "*Chrome/20.*",
+-  "*Chrome/21.*",
+-  "*Chrome/22.*",
+-  "*CriOS/1?.*",
+-  "*CriOS/20.*",
+-  "*CriOS/21.*",
+-  "*CriOS/22.*",
+-  "*CriOS/23.*",
+-  "*CriOS/24.*",
+-  "*CriOS/25.*",
+-  "*CriOS/26.*",
+-  "*CriOS/27.*",
+-  "*CriOS/28.*",
+-  "*Firefox/?.*",
+-  "*Firefox/1?.*",
+-  "*Firefox/2?.*",
+-  "*Firefox/3?.*",
+-  "*Firefox/4?.*",
+-  "*Firefox/5?.*",
+-  "*Firefox/60.*",
+-  "*Firefox/61.*",
+-  "*Firefox/62.*",
+-  "*Firefox/63.*",
+-  "*Firefox/64.*", // Black list Firefox not webp capable
++    "*Chrome/?.*",   "*Chrome/1?.*",  "*Chrome/20.*",  "*Chrome/21.*",
++    "*Chrome/22.*",  "*CriOS/1?.*",   "*CriOS/20.*",   "*CriOS/21.*",
++    "*CriOS/22.*",   "*CriOS/23.*",   "*CriOS/24.*",   "*CriOS/25.*",
++    "*CriOS/26.*",   "*CriOS/27.*",   "*CriOS/28.*",   "*Firefox/?.*",
++    "*Firefox/1?.*", "*Firefox/2?.*", "*Firefox/3?.*", "*Firefox/4?.*",
++    "*Firefox/5?.*", "*Firefox/60.*", "*Firefox/61.*", "*Firefox/62.*",
++    "*Firefox/63.*",
++    "*Firefox/64.*",  // Black list Firefox not webp capable
+ };
+ 
+ // Animated WebP is supported by browsers based on Chromium v32+, including
+@@ -196,34 +158,19 @@ const char* kWebpLosslessAlphaBlacklist[] = {
+ // also cover Opera 19+.
+ // [1] https://dev.opera.com/blog/opera-user-agent-strings-opera-15-and-beyond/
+ const char* kWebpAnimatedWhitelist[] = {
+-  "*Chrome/??.*",
+-  "*CriOS/??.*",
+-  "webp-animated",  // User agent for internal testing.
+-  "*Firefox/*",
++    "*Chrome/??.*",
++    "*CriOS/??.*",
++    "webp-animated",  // User agent for internal testing.
++    "*Firefox/*",
+ };
+ 
+ const char* kWebpAnimatedBlacklist[] = {
+-  "*Chrome/?.*",
+-  "*Chrome/1?.*",
+-  "*Chrome/2?.*",
+-  "*Chrome/30.*",
+-  "*Chrome/31.*",
+-  "*CriOS/?.*",
+-  "*CriOS/1?.*",
+-  "*CriOS/2?.*",
+-  "*CriOS/30.*",
+-  "*CriOS/31.*",
+-  "*Firefox/?.*",
+-  "*Firefox/1?.*",
+-  "*Firefox/2?.*",
+-  "*Firefox/3?.*",
+-  "*Firefox/4?.*",
+-  "*Firefox/5?.*",
+-  "*Firefox/60.*",
+-  "*Firefox/61.*",
+-  "*Firefox/62.*",
+-  "*Firefox/63.*",
+-  "*Firefox/64.*",
++    "*Chrome/?.*",   "*Chrome/1?.*",  "*Chrome/2?.*",  "*Chrome/30.*",
++    "*Chrome/31.*",  "*CriOS/?.*",    "*CriOS/1?.*",   "*CriOS/2?.*",
++    "*CriOS/30.*",   "*CriOS/31.*",   "*Firefox/?.*",  "*Firefox/1?.*",
++    "*Firefox/2?.*", "*Firefox/3?.*", "*Firefox/4?.*", "*Firefox/5?.*",
++    "*Firefox/60.*", "*Firefox/61.*", "*Firefox/62.*", "*Firefox/63.*",
++    "*Firefox/64.*",
+ };
+ 
+ const char* kInsertDnsPrefetchWhitelist[] = {
+diff --git a/pagespeed/kernel/http/user_agent_matcher_test.cc b/pagespeed/kernel/http/user_agent_matcher_test.cc
+index 6a2c23cbf2..c9a72dda72 100644
+--- a/pagespeed/kernel/http/user_agent_matcher_test.cc
++++ b/pagespeed/kernel/http/user_agent_matcher_test.cc
+@@ -317,8 +317,8 @@ TEST_F(UserAgentMatcherTest, SupportsWebpLosslessAlpha) {
+       kPagespeedInsightsMobileUserAgent));
+   EXPECT_TRUE(user_agent_matcher_->SupportsWebpLosslessAlpha(
+       kPagespeedInsightsDesktopUserAgent));
+-  EXPECT_TRUE(user_agent_matcher_->SupportsWebpLosslessAlpha(
+-      kFirefox7UserAgent));
++  EXPECT_TRUE(
++      user_agent_matcher_->SupportsWebpLosslessAlpha(kFirefox7UserAgent));
+ }
+ 
+ TEST_F(UserAgentMatcherTest, DoesntSupportWebpLosslessAlpha) {
+@@ -395,19 +395,13 @@ TEST_F(UserAgentMatcherTest, IE11NoDeferJs) {
+ TEST_F(UserAgentMatcherTest, Mobilization) { VerifyMobilizationSupport(); }
+ 
+ TEST_F(UserAgentMatcherTest, SupportsAnimatedWebp) {
+-  EXPECT_TRUE(user_agent_matcher_->SupportsWebpAnimated(
+-      kTestingWebpAnimated));
+-
+-  EXPECT_TRUE(user_agent_matcher_->SupportsWebpAnimated(
+-      kChrome32UserAgent));
+-  EXPECT_TRUE(user_agent_matcher_->SupportsWebpAnimated(
+-      kCriOS32UserAgent));
+-  EXPECT_TRUE(user_agent_matcher_->SupportsWebpAnimated(
+-      kOpera19UserAgent));
+-  EXPECT_TRUE(user_agent_matcher_->SupportsWebpAnimated(
+-      kChrome37UserAgent));
+-  EXPECT_TRUE(user_agent_matcher_->SupportsWebpAnimated(
+-      kFirefox7UserAgent));
++  EXPECT_TRUE(user_agent_matcher_->SupportsWebpAnimated(kTestingWebpAnimated));
++
++  EXPECT_TRUE(user_agent_matcher_->SupportsWebpAnimated(kChrome32UserAgent));
++  EXPECT_TRUE(user_agent_matcher_->SupportsWebpAnimated(kCriOS32UserAgent));
++  EXPECT_TRUE(user_agent_matcher_->SupportsWebpAnimated(kOpera19UserAgent));
++  EXPECT_TRUE(user_agent_matcher_->SupportsWebpAnimated(kChrome37UserAgent));
++  EXPECT_TRUE(user_agent_matcher_->SupportsWebpAnimated(kFirefox7UserAgent));
+ }
+ 
+ TEST_F(UserAgentMatcherTest, DoesntSupportAnimatedWebp) {
+diff --git a/pagespeed/kernel/http/user_agent_matcher_test_base.cc b/pagespeed/kernel/http/user_agent_matcher_test_base.cc
+index 7a604358cd..8b7949705f 100644
+--- a/pagespeed/kernel/http/user_agent_matcher_test_base.cc
++++ b/pagespeed/kernel/http/user_agent_matcher_test_base.cc
+@@ -128,8 +128,10 @@ const char UserAgentMatcherTestBase::kFirefox42AndroidUserAgent[] =
+     "Mozilla/5.0 (Android 5.0.1; Mobile; rv:42.0) Gecko/42.0 Firefox/42.0";
+ const char UserAgentMatcherTestBase::kFirefox5UserAgent[] =
+     "Mozilla/5.0 (X11; U; Linux i586; de; rv:5.0) Gecko/20100101 Firefox/5.0";
+-const char UserAgentMatcherTestBase::kFirefox7UserAgent[] =
+-    "Mozilla/5.0 (X11; Linux i586; rv:31.0) Gecko/20100101 Firefox/72.0"; //webp capable
++const char
++    UserAgentMatcherTestBase::kFirefox7UserAgent
++        [] = "Mozilla/5.0 (X11; Linux i586; rv:31.0) Gecko/20100101 "
++             "Firefox/72.0";  //webp capable
+ const char UserAgentMatcherTestBase::kFirefoxMobileUserAgent[] =
+     "Mozilla/5.0 (Android; Mobile; rv:38.0) Gecko/38.0 Firefox/38.0";
+ const char UserAgentMatcherTestBase::kFirefoxNokiaN800[] =
+

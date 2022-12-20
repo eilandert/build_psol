@@ -1,0 +1,54 @@
+From 8850eac347db3a3838c004161683510e4cc3aa26 Mon Sep 17 00:00:00 2001
+From: Lofesa <lofesa@gmail.com>
+Date: Tue, 16 Jul 2019 18:54:40 +0200
+Subject: [PATCH 1/2] Signed-off-by: Lofesa <lofesa@gmail.com>
+
+---
+ net/instaweb/rewriter/critical_css_loader.js | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/net/instaweb/rewriter/critical_css_loader.js b/net/instaweb/rewriter/critical_css_loader.js
+index 0fea1111d7..981a70b8b2 100644
+--- a/net/instaweb/rewriter/critical_css_loader.js
++++ b/net/instaweb/rewriter/critical_css_loader.js
+@@ -39,11 +39,16 @@ pagespeed.CriticalCssLoader.addAllStyles = function() {
+ 
+   var elements = document.getElementsByClassName('psa_add_styles');
+ 
++  
+   for (var i = 0, e; e = elements[i]; ++i) {
+     if (e.nodeName != 'NOSCRIPT') { continue; }
+     var div = document.createElement('div');
+     div.innerHTML = e.textContent;
+-    document.body.appendChild(div);
++    var children = div.childNodes;
++    for (var v = 0; v < children.length; ++v) {
++      children[v].removeAttribute('id');
++    }  
++  document.body.appendChild(div);
+   }
+ };
+ 
+
+From a1039e17bd33afa3a9f3b0998b8eb1ff16d5259e Mon Sep 17 00:00:00 2001
+From: Lofesa <lofesa@gmail.com>
+Date: Fri, 31 Jul 2020 14:00:30 +0200
+Subject: [PATCH 2/2] Signed-off-by: Lofesa <lofesa@gmail.com>
+
+---
+ net/instaweb/rewriter/critical_css_loader.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/instaweb/rewriter/critical_css_loader.js b/net/instaweb/rewriter/critical_css_loader.js
+index 981a70b8b2..bdb6fa0862 100644
+--- a/net/instaweb/rewriter/critical_css_loader.js
++++ b/net/instaweb/rewriter/critical_css_loader.js
+@@ -48,7 +48,7 @@ pagespeed.CriticalCssLoader.addAllStyles = function() {
+     for (var v = 0; v < children.length; ++v) {
+       children[v].removeAttribute('id');
+     }  
+-  document.body.appendChild(div);
++    document.body.appendChild(div);
+   }
+ };
+ 
