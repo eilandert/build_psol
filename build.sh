@@ -1,21 +1,19 @@
 #!/bin/sh
 
-CDIR=`pwd`
+CDIR=$(pwd)
 SRCDIR="${CDIR}/src"
+
+NUMCORE=$(cat /proc/cpuinfo | grep -c cores)
+export NUMCORE
 
 rm -rf src
 mkdir -p src
 cd src
 
-NUMCORE=$(cat /proc/cpuinfo | grep -c cores)
-export NUMCORE
-
 if [ ! -d "incubator-pagespeed-mod" ]; then
-    echo "cloning.."
     git clone -c advice.detachedHead=false --recursive https://github.com/apache/incubator-pagespeed-mod.git
     cd incubator-pagespeed-mod
 else
-    echo "pulling.."
     cd incubator-pagespeed-mod
     git pull --recurse-submodules
 fi
@@ -23,8 +21,8 @@ fi
 # Do a hard reset to the last working commit (before bazel got introduced)
 git reset --hard 409bd76
 
+# init and update all submodules (removed after #409bd76)
 git submodule update --init --recursive --jobs=${NUMCORE} --force
-
 
 # Apply some handpicked PR's from https://github.com/apache/incubator-pagespeed-mod/
 for PR in `ls ${CDIR}/pr`
@@ -32,6 +30,7 @@ do
     patch -p1 < ${CDIR}/pr/${PR}
 done
 
+# Build dockers and build psol from docker/bootstrap.sh
 cd ${CDIR}
 for DIST in trusty xenial bionic focal jammy
 do
