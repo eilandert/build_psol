@@ -51,9 +51,6 @@ python build/gyp_chromium --depth=.
 make -j${NUMCORE} BUILDTYPE=Release mod_pagespeed_test pagespeed_automatic_test
 install/build_psol.sh --skip_tests
 
-#rm /usr/src/incubator-pagespeed-mod/log/install_deps.log
-#rm /usr/src/incubator-pagespeed-mod/log/psol_automatic_build.log
-
 echo "Crunching psol.tar.xz with -9e --threads=${NUMCORE}"
 XZ_OPT="-9e --threads=${NUMCORE}" tar cJf /usr/src/psol-${DIST}.tar.xz psol/
 
