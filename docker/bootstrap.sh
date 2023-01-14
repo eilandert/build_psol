@@ -9,7 +9,7 @@ dpkg-statoverride --remove /usr/bin/sudo
 
 apt-get update
 apt-get -y upgrade
-apt-get -y install git lsb-release libpcre3-dev zlib1g-dev build-essential unzip uuid-dev webp g++ libssl-dev wget curl sudo rsync gperf
+apt-get -y install lsb-release build-essential rsync sudo
 
 DIST=$(lsb_release -c -s)
 apt-get -y -t ${DIST}-backports upgrade
@@ -58,4 +58,3 @@ echo "--------------------------------------------------> The End"
 echo ""
 
 exit 0;
-
