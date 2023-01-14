@@ -9,7 +9,7 @@ dpkg-statoverride --remove /usr/bin/sudo
 
 apt-get update
 apt-get -y upgrade
-apt-get -y install lsb-release build-essential rsync sudo
+apt-get -y install lsb-release build-essential rsync sudo git libjemalloc-dev
 
 DIST=$(lsb_release -c -s)
 apt-get -y -t ${DIST}-backports upgrade
