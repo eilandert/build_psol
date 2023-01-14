@@ -48,7 +48,6 @@ fi
 
 # Finally! build psol! Get some coffee and let the magic do it's job
 python build/gyp_chromium --depth=.
-make -j${NUMCORE} BUILDTYPE=Release mod_pagespeed_test pagespeed_automatic_test
 install/build_psol.sh --skip_tests
 
 echo "Crunching psol.tar.xz with -9e --threads=${NUMCORE}"
