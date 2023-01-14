@@ -33,9 +33,16 @@ done
 # Add more jobs to the make arguments
 sed -i s/"MAKE_ARGS=(V=1 BUILDTYPE=\$buildtype)"/"MAKE_ARGS=(V=1 -j${NUMCORE} BUILDTYPE=\$buildtype)"/ install/build_psol.sh
 
+# Fix log output, we run in docker so it should go to STDOUT
+sed -i  /"run_with_log log\/install_deps.log"/d install/build_psol.sh
+sed -i s/"run_with_log log\/gyp.log"//g            install/build_psol.sh
+sed -i s/"run_with_log log\/psol_build.log"//g     install/build_psol.sh
+sed -i /"run_with_log \.\.\/\.\.\/log\/psol_automatic_build.log"/d install/build_psol.sh
+
 # Build dockers and build psol from docker/bootstrap.sh
 cd ${CDIR}
-for DIST in trusty xenial bionic focal jammy
+#for DIST in trusty xenial bionic focal jammy
+for DIST in trusty
 do
     cp docker/Dockerfile-template docker/Dockerfile
     sed -i s/OS/ubuntu-base/ docker/Dockerfile
