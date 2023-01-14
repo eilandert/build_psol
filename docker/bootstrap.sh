@@ -36,9 +36,6 @@ cd /usr/src/incubator-pagespeed-mod
 # Remove output from last compile
 rm -rf psol
 
-# Add more jobs to the make arguments
-sed -i s/"MAKE_ARGS=(V=1 BUILDTYPE=\$buildtype)"/"MAKE_ARGS=(V=1 -j${NUMCORE} BUILDTYPE=\$buildtype)"/ install/build_psol.sh
-
 #
 # Jammy has new glibc, which has removed some functions. After altering the files below please clone git
 # again before building for older glibs, as these changes are probably not compatible with older builds.

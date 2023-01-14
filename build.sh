@@ -30,6 +30,9 @@ do
     patch -p1 < ${CDIR}/pr/${PR}
 done
 
+# Add more jobs to the make arguments
+sed -i s/"MAKE_ARGS=(V=1 BUILDTYPE=\$buildtype)"/"MAKE_ARGS=(V=1 -j${NUMCORE} BUILDTYPE=\$buildtype)"/ install/build_psol.sh
+
 # Build dockers and build psol from docker/bootstrap.sh
 cd ${CDIR}
 for DIST in trusty xenial bionic focal jammy
