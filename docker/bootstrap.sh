@@ -25,12 +25,6 @@ apt-get -y install python2-minimal
 rm -f /usr/bin/python
 ln -s /usr/bin/python2 /usr/bin/python
 
-# Install depot tools
-mkdir -p ~/bin
-cd ~/bin
-git clone --depth=1 -c advice.detachedHead=false https://chromium.googlesource.com/chromium/tools/depot_tools.git
-export PATH=$PATH:~/bin/depot_tools
-
 cd /usr/src/incubator-pagespeed-mod
 
 # Remove output from last compile
