@@ -48,13 +48,11 @@ fi
 
 # Finally! build psol! Get some coffee and let the magic do it's job
 python build/gyp_chromium --depth=.
-tail -F /usr/src/incubator-pagespeed-mod/log/install_deps.log &
 make -j${NUMCORE} BUILDTYPE=Release mod_pagespeed_test pagespeed_automatic_test
-tail -F /usr/src/incubator-pagespeed-mod/log/psol_automatic_build.log &
 install/build_psol.sh --skip_tests
 
-rm /usr/src/incubator-pagespeed-mod/log/install_deps.log
-rm /usr/src/incubator-pagespeed-mod/log/psol_automatic_build.log
+#rm /usr/src/incubator-pagespeed-mod/log/install_deps.log
+#rm /usr/src/incubator-pagespeed-mod/log/psol_automatic_build.log
 
 echo "Crunching psol.tar.xz with -9e --threads=${NUMCORE}"
 XZ_OPT="-9e --threads=${NUMCORE}" tar cJf /usr/src/psol-${DIST}.tar.xz psol/
