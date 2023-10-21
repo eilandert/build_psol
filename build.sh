@@ -24,6 +24,15 @@ git reset --hard 409bd76
 # init and update all submodules (removed after #409bd76)
 git submodule update --init --recursive --jobs=${NUMCORE} --force
 
+# Fix conflict with gettid
+# based on
+# https://github.com/apache/incubator-pagespeed-mod/issues/2040
+# https://github.com/tensorflow/tensorflow/issues/33758
+sed -i 's/static long gettid/static long sys_gettid/g'  third_party/grpc/src/src/core/lib/support/log_linux.c
+sed -i -e 's/tid = gettid()/tid = sys_gettid()/g'  third_party/grpc/src/src/core/lib/support/log_linux.c
+sed -i 's/static intptr_t gettid/static intptr_t sys_gettid/g'  third_party/grpc/src/src/core/lib/support/log_posix.c
+sed -i -e 's/ gettid()/ sys_gettid()/g'  third_party/grpc/src/src/core/lib/support/log_posix.c
+
 # Apply some handpicked PR's from https://github.com/apache/incubator-pagespeed-mod/
 for PR in `ls ${CDIR}/pr`
 do
@@ -40,8 +49,9 @@ sed -i s/"run_with_log log\/psol_build.log"//g     install/build_psol.sh
 sed -i /"run_with_log \.\.\/\.\.\/log\/psol_automatic_build.log"/d install/build_psol.sh
 
 # Build dockers and build psol from docker/bootstrap.sh
+# jammy and higher have to go last, because of the sed for glibc functions in the docker
 cd ${CDIR}
-for DIST in trusty xenial bionic focal jammy
+for DIST in focal bionic xenial trusty jammy
 do
     cp docker/Dockerfile-template docker/Dockerfile
     sed -i s/OS/ubuntu-base/ docker/Dockerfile
