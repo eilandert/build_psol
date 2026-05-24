@@ -1,0 +1,12 @@
+# Working trees and caches that should never enter the repo.
+src/
+.ccache/
+
+# Build leftovers
+log
+*.bak
+docker/Dockerfile
+
+# Editor / OS noise
+*.swp
+.DS_Store

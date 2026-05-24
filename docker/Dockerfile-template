@@ -1,13 +1,40 @@
 FROM    eilandert/OS:DIST
 LABEL   maintainer="Thijs Eilander <eilander@myguard.nl>"
-ENV     DEBIAN_FRONTEND="noninteractive"
+ENV     DEBIAN_FRONTEND=noninteractive
 ENV     TZ=Europe/Amsterdam
 
-COPY bootstrap.sh /bootstrap.sh
+# Speed up apt: drop translation downloads, pipeline HTTP, never write
+# debug-related auto-generated package symbols.
+RUN     printf 'Acquire::Languages "none";\nAcquire::http::Pipeline-Depth "10";\nAPT::Install-Recommends "false";\n' \
+        > /etc/apt/apt.conf.d/99-build-psol
 
-RUN	chmod +x /bootstrap.sh
+# Pre-bake the dependency install into the docker image so iterating on
+# bootstrap.sh does NOT redo this on every container start. Anything
+# dist-specific (python2 bullseye-pin, source-tree fixups) stays in
+# bootstrap.sh.
+#
+# eatmydata: we set LD_PRELOAD ourselves with the multilib path because
+# the upstream `eatmydata` wrapper still references /usr/lib/libeatmydata
+# (pre-multilib layout) and spams ld.so warnings on modern dists.
+COPY    modern-install_required_packages.sh /modern-install_required_packages.sh
+RUN     apt-get update \
+        && apt-get -y install eatmydata \
+        && LIBEAT=$(find /usr/lib -name libeatmydata.so | head -1) \
+        && export LD_PRELOAD="${LIBEAT}" \
+        && apt-get -y upgrade \
+        && apt-get -y install \
+              lsb-release build-essential rsync sudo git \
+              libjemalloc-dev ccache wget curl xz-utils \
+              file ca-certificates \
+        && chmod +x /modern-install_required_packages.sh \
+        && /modern-install_required_packages.sh \
+        && apt-get clean \
+        && rm -rf /var/lib/apt/lists/* \
+        && { dpkg-statoverride --remove /usr/bin/sudo 2>/dev/null || true; } \
+        && chmod 4755 /usr/bin/sudo
+
+COPY    bootstrap.sh /bootstrap.sh
+RUN     chmod +x /bootstrap.sh
 
 CMD     ["/bootstrap.sh"]
-
 WORKDIR /usr/src
-
