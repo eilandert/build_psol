@@ -1,7 +1,9 @@
 
-scripts to build PageSpeed Optimization Libraries with Docker
+Scripts to build PageSpeed Optimization Libraries with Docker
 
-Please see https://github.com/apache/incubator-pagespeed-ngx/issues/1760#issuecomment-1358070522
+Please see:
+https://github.com/apache/incubator-pagespeed-ngx/issues/1760#issuecomment-1358070522
+https://deb.myguard.nl/2026/05/google-pagespeed-nginx-what-it-was-alternatives/
 
 This project is part of https://deb.myguard.nl/nginx-modules/
 
@@ -9,9 +11,4 @@ Please note, PAGESPEED is ABANDONED. I don't recommend to implement it if you ar
 pagespeed working as long as possible for existing 
 installs on modern software, but there will be an end to this effort sometime. <BR>
 The official documentation site is down, so I opened a new one on https://pagespeed.myguard.nl/
-
-
-Pull requests are welcome.
-
-
 
